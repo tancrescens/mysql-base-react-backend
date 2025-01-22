@@ -1,4 +1,4 @@
-const userData = require('../data/userData');
+const userData = require('../data/users');
 const bcrypt = require('bcrypt');
 
 async function registerUser({ name, email, password, salutation, marketingPreferences, country }) {
@@ -36,7 +36,23 @@ async function loginUser(email, password) {
   return user;
 }
 
+async function updateUserDetails(id, userDetails) {
+  return await userData.updateUser(id, userDetails);
+}
+
+async function deleteUserAccount(id) {
+  return await userData.deleteUser(id);
+}
+
+async function getUserDetailsById(id) {
+  return await userData.getUserById(id);
+}
+
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
+  updateUserDetails,
+  deleteUserAccount,
+  getUserDetailsById
 };
+
