@@ -1,41 +1,40 @@
 const pool = require('../database');
 
 async function getUserByEmail(email) {
+
   if (!email || typeof email !== 'string') {
+    // inform the function calling this function that an exception has occurred
     throw new Error('Invalid email');
   }
-  const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+  try {
+    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    return rows[0];
+  } catch (e) {
+    console.log(e);
+    // todo: log instance of error
+    throw e; // escalate the exception to the function calling this function
+  }
+}
+
+async function getUserById(id) {
+  if (!id || typeof id !== 'number') {
+    throw new Error('Invalid user ID');
+  }
+  const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
   return rows[0];
 }
 
-
-async function getUserById(id) {
-    if (!id || typeof id !== 'number') {
-        throw new Error('Invalid user ID');
-    }
-    const [rows] = await pool.query(`SELECT * FROM users WHERE users.id = ?`, [id]);
-    const user = rows[0];
-    
-    const [preferences] = await pool.query(`SELECT preference_id FROM user_marketing_preferences WHERE user_id = ?`, [id]);
-    user.marketingPreferences = preferences.map(p=>{
-        if (p.preference_id == 1) {
-            return "email";
-        } else {
-            return "sms";
-        }
-    });
-
-    return user;
-}
-
-
 async function createUser({ name, email, password, salutation, country, marketingPreferences }) {
+  // validation (you can use yup for validation)
   if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
     throw new Error('Invalid user data');
   }
 
+  // get the current connection
   const connection = await pool.getConnection();
   try {
+    // we begin a transaction: create a checkpoint in the database
+    // any changes made is pending until the transaction is committed
     await connection.beginTransaction();
 
     // Insert user data
@@ -69,12 +68,15 @@ async function createUser({ name, email, password, salutation, country, marketin
       }
     }
 
+    // when we commit a transaction, all the changes are finalized
     await connection.commit();
     return userId;
   } catch (error) {
+    // rollback (or undo) all the existing changes done since the transaction has occurred
     await connection.rollback();
     throw error;
   } finally {
+    // release the connection so that it can be reused
     connection.release();
   }
 }
@@ -155,5 +157,4 @@ module.exports = {
   updateUser,
   deleteUser
 };
-
 
