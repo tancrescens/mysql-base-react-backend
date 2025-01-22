@@ -36,6 +36,7 @@ router.post('/login', async (req, res) => {
 
     } else {
       throw new Error("Unable to get user");
+      console.log("Unable to get user");
     }
   } catch (e) {
     console.log(e);

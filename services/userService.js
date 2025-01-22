@@ -26,11 +26,13 @@ async function loginUser(email, password) {
   const user = await userData.getUserByEmail(email);
   if (!user) {
     throw new Error('Invalid email or password');
+    console.log("Invalid email or password");
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
     throw new Error('Invalid email or password');
+    console.log("Invalid email or password");
   }
 
   return user;

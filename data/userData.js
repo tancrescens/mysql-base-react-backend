@@ -5,6 +5,7 @@ async function getUserByEmail(email) {
   if (!email || typeof email !== 'string') {
     // inform the function calling this function that an exception has occurred
     throw new Error('Invalid email');
+    console.log("Invalid email");
   }
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
