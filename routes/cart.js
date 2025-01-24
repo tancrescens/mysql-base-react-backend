@@ -1,30 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const cartService = require('../services/cartService');
-const authenticateToken = require('../middlewares/UserAuth');
+const cartService = require('../services/cart');
+const AuthenticateWithJWT = require('../middlewares/AuthenticateWithJWT');
 
-// Apply the authenticateToken middleware to all routes
-router.use(authenticateToken);
-
-// GET cart contents
-router.get('/', async (req, res) => {
+// GET: get the entire content of the shopping cart
+router.get('/', AuthenticateWithJWT, async (req, res) => {
   try {
-    const cartContents = await cartService.getCartContents(req.user.userId);
-    res.json(cartContents);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const cartContent = await cartService.getCartContents(req.userId);
+    res.json(cartContent);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      message: "Error retriving cart"
+    })
   }
-});
+})
 
-// PUT bulk update cart
-router.put('/', async (req, res) => {
+// PUT: Update the server-side shopping cart with the one from the client-side
+router.put('/', AuthenticateWithJWT, async (req, res) => {
   try {
-    const cartItems = req.body.cartItems; // Expects an array of items with productId and quantity
-    await cartService.updateCart(req.user.userId, cartItems);
-    res.json({ message: 'Cart updated successfully' });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    await cartService.updateCart(req.userId, req.body.cartItems);
+    res.json({
+      'message': 'Shopping is updated'
+    })
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      'message': 'Error updating shopping cart'
+    })
   }
+
 });
 
 module.exports = router;

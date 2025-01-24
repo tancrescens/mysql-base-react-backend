@@ -1,43 +1,53 @@
 const pool = require('../database');
 
-// Fetch cart contents for a user
 async function getCartContents(userId) {
-  const [rows] = await pool.query(
-    'SELECT c.id, c.product_id, p.image as imageUrl, p.name AS productName, CAST(price AS DOUBLE) AS price, c.quantity FROM cart_items c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?',
-    [userId]
-  );
+  const [rows] = await pool.query(`
+        SELECT * FROM cart_items JOIN products
+          ON cart_items.product_id = products.id
+          WHERE user_id = ?
+        `, [userId]);
+
   return rows;
 }
 
-
-
-// Bulk update the cart contents
+// Data format
+// Cart content: [{
+//  product_id: ID of the product,
+//  quantity: the number of the quantity
+//}]
 async function updateCart(userId, cartItems) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Clear existing cart items for the user
-    await connection.query('DELETE FROM cart_items WHERE user_id = ?', [userId]);
+    // 1. delete the old cart 
+    connection.query('DELETE FROM cart_items WHERE user_id = ?', [userId])
 
-    // Insert each item in the new cart
-    for (const item of cartItems) {
-      await connection.query(
-        'INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)',
-        [userId, item.product_id, item.quantity]
-      );
+    // 2. recreate the cart
+    // this is an inefficent solution but you can try
+    // creating an efficient solution where mutliple rows
+    // are inserted with one query
+    for (let cartItem of cartItems) {
+      await connection.query(`
+                INSERT INTO cart_items(user_id, product_id, quantity)
+                    VALUES (?,?,?)
+                
+                `, [userId, cartItem.product_id, cartItem.quantity])
     }
 
+    // finalize the changes to the database
     await connection.commit();
-  } catch (error) {
+
+  } catch (e) {
+    // any error when caught we rollback the database
     await connection.rollback();
-    throw error;
   } finally {
     connection.release();
   }
 }
 
+
 module.exports = {
   getCartContents,
   updateCart
-};
+}
