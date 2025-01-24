@@ -1,4 +1,4 @@
-const productData = require('../data/cart');
+const productData = require('../data/cartData');
 
 async function getCartContents(userId) {
   return await productData.getCartContents(userId);

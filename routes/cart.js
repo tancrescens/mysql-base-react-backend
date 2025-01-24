@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const cartService = require('../services/cart');
+const cartService = require('../services/cartService');
 const AuthenticateWithJWT = require('../middlewares/AuthenticateWithJWT');
 
 // GET: get the entire content of the shopping cart
