@@ -1,3 +1,7 @@
+# Notes
+This is the link for the frontend:
+[Fronend Link](https://github.com/tancrescens/ecommerce-react/tree/main)
+
 To start mysql, in the terminal, type in `mysql -u root`
 
 # Create a new database user
