@@ -1,3 +1,5 @@
+CREATE database ecommerce;
+
 USE ecommerce;
 
 -- Products table
